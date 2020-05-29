@@ -39,7 +39,7 @@ function FSocketClient(wsUrl, onconnect, own) {
 
     own.ws.onclose = function () {
         // send disconnect event
-        if (own.subscriptions['disconnect']) {
+        if (own && own.subscriptions['disconnect']) {
             for (const key in own.subscriptions['disconnect']) {
                 if (own.subscriptions['disconnect'].hasOwnProperty(key)) {
                     const element = own.subscriptions['disconnect'][key];
@@ -50,7 +50,7 @@ function FSocketClient(wsUrl, onconnect, own) {
 
         // Try to reconnect in 5 seconds
         setTimeout(function () {
-            if (own.ws) {
+            if (own && own.ws) {
                 if (own.ws.readyState == 1) {
 
                 }
@@ -172,7 +172,8 @@ function FSocketClient(wsUrl, onconnect, own) {
         }
 
         own.ws = null;
-        own.subscriptions = null;
+        own.subscriptions = {};
+        own.events = {};
         own = null;
     }
 
