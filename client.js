@@ -78,12 +78,22 @@ function FSocketClient(wsUrl, onconnect, own) {
         }
     };
 
+    own.connect = () => {
+        own.ws = new WebSocket(wsUrl);
+    }
+
+    own.disconnect = () => {
+        own.ws = null;
+    }
+
     own.emit = (eventName, value, callback) => {
-        own.ws.send(JSON.stringify({
-            type: "data",
-            eventName: eventName,
-            value
-        }));
+        if (own.ws && own.ws.readyState == 1) {
+            own.ws.send(JSON.stringify({
+                type: "data",
+                eventName: eventName,
+                value
+            }));
+        }
     }
 
     own.on = (subscription, callback) => {
@@ -105,7 +115,6 @@ function FSocketClient(wsUrl, onconnect, own) {
     }
 
     own.unsubscribe = (guid) => {
-
         for (const key in own.subscriptions) {
             if (own.subscriptions.hasOwnProperty(key)) {
                 const iterator = own.subscriptions[key];
