@@ -47,7 +47,7 @@ function FSocketClient(wsUrl, onconnect, own) {
                 }
             }
         }
-        
+
         // Try to reconnect in 5 seconds
         setTimeout(function () {
             if (own.ws) {
@@ -144,7 +144,7 @@ function FSocketClient(wsUrl, onconnect, own) {
         }
     }
 
-    own.clear = () => {
+    own.removeAllListeners = () => {
         for (const key in own.subscriptions) {
             if (own.subscriptions.hasOwnProperty(key)) {
                 const guids = own.subscriptions[key];
@@ -161,10 +161,11 @@ function FSocketClient(wsUrl, onconnect, own) {
         }
 
         own.subscriptions = {};
+        own.events = {};
     }
 
     own.destroy = () => {
-        own.clear();
+        own.removeAllListeners();
 
         if (own.ws && own.ws.readyState == 1) {
             own.ws.close();
