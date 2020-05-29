@@ -3,6 +3,7 @@
 function FSocketClient(wsUrl, onconnect, own) {
     own = own || this;
     own.subscriptions = own.subscriptions || {};
+    own.events = {};
     own.ws = new WebSocket(wsUrl);
 
     own.ws.onopen = function () {
@@ -37,23 +38,23 @@ function FSocketClient(wsUrl, onconnect, own) {
     };
 
     own.ws.onclose = function () {
-        console.log('WebSocket Client Diconnected');
+        // send disconnect event
+        if (own.subscriptions['disconnect']) {
+            for (const key in own.subscriptions['disconnect']) {
+                if (own.subscriptions['disconnect'].hasOwnProperty(key)) {
+                    const element = own.subscriptions['disconnect'][key];
+                    element.callback();
+                }
+            }
+        }
+        
         // Try to reconnect in 5 seconds
         setTimeout(function () {
             if (own.ws) {
                 if (own.ws.readyState == 1) {
 
                 }
-                else {
-                    // send disconnect event
-                    if (own.subscriptions['disconnect']) {
-                        for (const key in own.subscriptions['disconnect']) {
-                            if (own.subscriptions['disconnect'].hasOwnProperty(key)) {
-                                const element = own.subscriptions['disconnect'][key];
-                                element.callback();
-                            }
-                        }
-                    }
+                else {                   
 
                     // retry connect
                     FSocketClient(wsUrl, onconnect, own);
@@ -66,7 +67,6 @@ function FSocketClient(wsUrl, onconnect, own) {
         try {
             let json = JSON.parse(e.data);
 
-
             if (json.type == 'subscription' && own.subscriptions[json.subscription]) {
                 for (const key in own.subscriptions[json.subscription]) {
                     if (own.subscriptions[json.subscription].hasOwnProperty(key)) {
@@ -74,6 +74,11 @@ function FSocketClient(wsUrl, onconnect, own) {
                         element.callback(json.value);
                     }
                 }
+            }
+
+            if (json.type == 'data' && own.events[json.eventName]) {
+                const element = own.events[json.eventName];
+                element.callback(json.value);
             }
         } catch (error) {
 
@@ -89,6 +94,12 @@ function FSocketClient(wsUrl, onconnect, own) {
     }
 
     own.emit = (eventName, value, callback) => {
+        let guid = uuidv4();
+        own.events[eventName] = {
+            eventName: eventName,
+            callback
+        };
+
         if (own.ws && own.ws.readyState == 1) {
             own.ws.send(JSON.stringify({
                 type: "data",

@@ -28,8 +28,10 @@
         //own.fsocket.clear();
 
         setInterval(() => {
-            fsocket.emit('new-candle', 'new info');
-        }, 5000)
+            fsocket.emit('new-candle', 'new info', (data) => {
+                console.log(data);
+            });
+        }, 30000)
 
     </script>
 </body>

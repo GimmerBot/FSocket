@@ -15,11 +15,11 @@ socket.on("disconnect", (user) => {
     console.log(user);
 });
 
-let subscribeId = socket.on("new-candle", (user, value) => {
+let subscribeId = socket.on("new-candle", (user, value, callback) => {
     console.log(value);
-    socket.unsubscribe(subscribeId);
+    callback({ newCandle: true });
 });
 
-setInterval(() => {
-    socket.emit("candle", { test: true });
-}, 1000);
+// setInterval(() => {
+//     socket.emit("candle", { test: true });
+// }, 1000);

@@ -74,12 +74,20 @@ let api = function FSocketServer() {
                         delete own.subscriptions[json.value][request.key];
                     }
 
+                    // receive data from client
                     if (json.type == 'data' && json.eventName) {
                         if (own.events[json.eventName]) {
                             for (const key in own.events[json.eventName]) {
                                 if (own.events[json.eventName].hasOwnProperty(key)) {
                                     const element = own.events[json.eventName][key];
-                                    element(user, json.value);
+                                    element(user, json.value, (value) => {
+                                        // return data to client
+                                        connection.sendUTF(JSON.stringify({
+                                            type: "data",
+                                            eventName: json.eventName,
+                                            value: value
+                                        }));
+                                    });                                    
                                 }
                             }
                         }
