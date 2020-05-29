@@ -1,17 +1,30 @@
 const WebSocketServer = require('websocket').server;
+const fs = require('fs');
 
 let api = function FSocketServer() {
     let own = this;
     own.wsServer = null;
+    own.clientJs = fs.readFileSync(process.cwd() + '/client.js', 'utf8');
 
     /**
      * Futures heartbeat code with a shared single interval tick
      * @return {undefined}
      */
-    own.connect = (server) => {       
+    own.connect = (server) => {
 
         own.wsServer = new WebSocketServer({
             httpServer: server
+        });
+
+        // server.get('/fsocket.js', async (req, res) => {
+        //     res.send(fs.readFile(process.cwd() + '/client.js', 'utf8'));
+        // });
+
+        server.on('request', function (req, res) {
+            if (req.url == '/fsocket.js') {
+                res.writeHead(200, { 'Content-Type': 'text/javascript' });
+                res.end(own.clientJs);
+            }
         });
 
         listening();
@@ -140,7 +153,7 @@ let api = function FSocketServer() {
             if (own.events.hasOwnProperty(key)) {
                 const iterator = own.events[key];
                 if (iterator[guid]) {
-                    delete iterator[guid];                    
+                    delete iterator[guid];
                 }
             }
         }
@@ -159,7 +172,7 @@ let api = function FSocketServer() {
             var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
             return v.toString(16);
         });
-    }    
+    }
 }
 
 module.exports = api;
