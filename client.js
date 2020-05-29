@@ -133,12 +133,24 @@ function FSocketClient(wsUrl, onconnect, own) {
                             type: "unsubscribe",
                             value: key
                         }));
-                    }                    
+                    }
                 }
             }
         }
 
         own.subscriptions = {};
+    }
+
+    own.destroy = () => {
+        own.clear();
+
+        if (own.ws && own.ws.readyState == 1) {
+            own.ws.close();
+        }
+
+        own.ws = null;
+        own.subscriptions = null;
+        own = null;
     }
 
     function uuidv4() {
