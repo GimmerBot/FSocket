@@ -4,7 +4,7 @@ const fs = require('fs');
 let api = function FSocketServer() {
     let own = this;
     own.wsServer = null;
-    own.clientJs = fs.readFileSync(process.cwd() + '/client.js', 'utf8');
+    own.clientJs = fs.readFileSync(__dirname + '/client.js', 'utf8');
 
     /**
      * Futures heartbeat code with a shared single interval tick
