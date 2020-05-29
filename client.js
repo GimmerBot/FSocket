@@ -86,7 +86,8 @@ function FSocketClient(wsUrl, onconnect, own) {
     };
 
     own.connect = () => {
-        own.ws = new WebSocket(wsUrl);
+        // retry connect
+        FSocketClient(wsUrl, onconnect, own);
     }
 
     own.disconnect = () => {
