@@ -11,12 +11,22 @@
     <script>
         let own = this;
         own.fsocket = new FSocketClient('ws://localhost:9898/', (fsocket) => {
-            own.subscriberId = fsocket.on('candle', (candle) => {
-                console.log(candle);
-                own.fsocket.unsubscribe(own.subscriberId);
-            });
         });
-        
+
+        own.fsocket.on('candle', (candle) => {
+            console.log(candle);
+        });
+
+        own.fsocket.on('connect', () => {
+            console.log("connected");
+        });
+
+        own.fsocket.on('disconnect', () => {
+            console.log("disconnected");
+        });
+
+        //own.fsocket.clear();
+
         setInterval(() => {
             fsocket.emit('new-candle', 'new info');
         }, 5000)

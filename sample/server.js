@@ -22,4 +22,4 @@ let subscribeId = socket.on("new-candle", (user, value) => {
 
 setInterval(() => {
     socket.emit("candle", "test");
-}, 5000);
+}, 1000);

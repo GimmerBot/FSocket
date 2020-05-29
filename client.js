@@ -2,14 +2,37 @@
 
 function FSocketClient(wsUrl, onconnect, own) {
     own = own || this;
-    own.onconnect = onconnect;
-    own.subscriptions = {};
+    own.subscriptions = own.subscriptions || {};
     own.ws = new WebSocket(wsUrl);
 
     own.ws.onopen = function () {
         console.log('WebSocket Client Connected');
-        if (own.onconnect) {
+        if (!own.onconnect) {
+            own.onconnect = onconnect;
             own.onconnect(own);
+        }
+
+        // resend the subscriptions
+        for (const key in own.subscriptions) {
+            if (own.subscriptions.hasOwnProperty(key)) {
+                if (key != 'connect' && key != 'disconnect') {
+                    const element = own.subscriptions[key];
+                    own.ws.send(JSON.stringify({
+                        type: "subscribe",
+                        value: key
+                    }));
+                }
+            }
+        }
+
+        // send connect event
+        if (own.subscriptions['connect']) {
+            for (const key in own.subscriptions['connect']) {
+                if (own.subscriptions['connect'].hasOwnProperty(key)) {
+                    const element = own.subscriptions['connect'][key];
+                    element.callback();
+                }
+            }
         }
     };
 
@@ -18,14 +41,22 @@ function FSocketClient(wsUrl, onconnect, own) {
         // Try to reconnect in 5 seconds
         setTimeout(function () {
             if (own.ws.readyState == 1) {
-                if (own.onconnect) {
-                    own.onconnect(own);
-                }
+
             }
             else {
+                // send disconnect event
+                if (own.subscriptions['disconnect']) {
+                    for (const key in own.subscriptions['disconnect']) {
+                        if (own.subscriptions['disconnect'].hasOwnProperty(key)) {
+                            const element = own.subscriptions['disconnect'][key];
+                            element.callback();
+                        }
+                    }
+                }
+
+                // retry connect
                 FSocketClient(wsUrl, onconnect, own);
             }
-
         }, 5000);
     };
 
@@ -63,10 +94,12 @@ function FSocketClient(wsUrl, onconnect, own) {
             callback
         };
 
-        own.ws.send(JSON.stringify({
-            type: "subscribe",
-            value: subscription
-        }));
+        if (own.ws && own.ws.readyState == 1) {
+            own.ws.send(JSON.stringify({
+                type: "subscribe",
+                value: subscription
+            }));
+        }
 
         return guid;
     }
@@ -77,14 +110,35 @@ function FSocketClient(wsUrl, onconnect, own) {
             if (own.subscriptions.hasOwnProperty(key)) {
                 const iterator = own.subscriptions[key];
                 if (iterator[guid]) {
-                    own.ws.send(JSON.stringify({
-                        type: "unsubscribe",
-                        value: key
-                    }));
+                    if (own.ws && own.ws.readyState == 1) {
+                        own.ws.send(JSON.stringify({
+                            type: "unsubscribe",
+                            value: key
+                        }));
+                    }
                     delete iterator[guid];
                 }
             }
-        }        
+        }
+    }
+
+    own.clear = () => {
+        for (const key in own.subscriptions) {
+            if (own.subscriptions.hasOwnProperty(key)) {
+                const guids = own.subscriptions[key];
+
+                for (const guid in guids) {
+                    if (own.ws && own.ws.readyState == 1) {
+                        own.ws.send(JSON.stringify({
+                            type: "unsubscribe",
+                            value: key
+                        }));
+                    }                    
+                }
+            }
+        }
+
+        own.subscriptions = {};
     }
 
     function uuidv4() {
@@ -93,5 +147,7 @@ function FSocketClient(wsUrl, onconnect, own) {
             return v.toString(16);
         });
     }
+
+    return own;
 }
 
