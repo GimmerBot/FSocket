@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+
+<body>
+    <script src="../client.js"></script>
+    <script>
+        let own = this;
+        own.fsocket = new FSocketClient('ws://localhost:9898/', (fsocket) => {
+            own.subscriberId = fsocket.on('candle', (candle) => {
+                console.log(candle);
+                own.fsocket.unsubscribe(own.subscriberId);
+            });
+        });
+        
+        setInterval(() => {
+            fsocket.emit('new-candle', 'new info');
+        }, 5000)
+
+    </script>
+</body>
+
+</html>
