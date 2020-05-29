@@ -7,7 +7,7 @@ function FSocketClient(wsUrl, onconnect, own) {
 
     own.ws.onopen = function () {
         console.log('WebSocket Client Connected');
-        if (!own.onconnect) {
+        if (!own.onconnect && onconnect) {
             own.onconnect = onconnect;
             own.onconnect(own);
         }
