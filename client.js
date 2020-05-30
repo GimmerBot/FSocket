@@ -16,7 +16,7 @@ function FSocketClient(wsUrl, onconnect, own) {
         // resend the subscriptions
         for (const key in own.subscriptions) {
             if (own.subscriptions.hasOwnProperty(key)) {
-                if (key != 'connect' && key != 'disconnect') {
+                if (key != 'connect' && key != 'disconnect' && key != 'reconnecting') {
                     const element = own.subscriptions[key];
                     own.ws.send(JSON.stringify({
                         type: "subscribe",
@@ -55,6 +55,15 @@ function FSocketClient(wsUrl, onconnect, own) {
 
                 }
                 else {                   
+
+                    if (own && own.subscriptions['reconnecting']) {
+                        for (const key in own.subscriptions['reconnecting']) {
+                            if (own.subscriptions['reconnecting'].hasOwnProperty(key)) {
+                                const element = own.subscriptions['reconnecting'][key];
+                                element.callback();
+                            }
+                        }
+                    }
 
                     // retry connect
                     FSocketClient(wsUrl, onconnect, own);
