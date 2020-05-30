@@ -48,7 +48,15 @@ let api = function FSocketServer() {
             let user = {
                 id: request.key,
                 connection,
-                request
+                request,
+                emit: (subscription, params) => {
+                    let conn = own.subscriptions[subscription][request.key];
+                    conn.sendUTF(JSON.stringify({
+                        type: "subscription",
+                        subscription,
+                        value: params
+                    }));
+                }
             };
             own.users[request.key] = user;
 
