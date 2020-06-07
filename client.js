@@ -8,7 +8,7 @@ function FSocketClient(wsUrl, onconnect, own) {
 
     own.ws.onopen = function () {
         console.log('WebSocket Client Connected');
-        if (!own.onconnect && onconnect) {
+        if (own && !own.onconnect && onconnect) {
             own.onconnect = onconnect;
             own.onconnect(own);
         }
@@ -61,7 +61,7 @@ function FSocketClient(wsUrl, onconnect, own) {
                         }
                     }
                 }
-                else {                   
+                else {
 
                     if (own && own.subscriptions['reconnecting']) {
                         for (const key in own.subscriptions['reconnecting']) {
@@ -191,7 +191,6 @@ function FSocketClient(wsUrl, onconnect, own) {
         own.ws = null;
         own.subscriptions = {};
         own.events = {};
-        own = null;
     }
 
     function uuidv4() {
